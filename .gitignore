@@ -1,2 +1,5 @@
-DynamixelSDK/
+__pycache__/
+*.pyc
+*.pyo
 
+DynamixelSDK/
