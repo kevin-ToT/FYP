@@ -163,13 +163,13 @@ class ExperimentUI:
         """
         if self.phase_stage == 0:
             self.pre_trial_label.config(
-                text="First stimulation triggered.\n\nPress SPACE for the second stimulation."
+                text="\n\n First stimulation triggered. Press SPACE for the second stimulation."
             )
             self.trigger_pre_trial_move(0)
             self.phase_stage = 1 
         elif self.phase_stage == 1:
             self.pre_trial_label.config(
-                text="Second stimulation triggered.\n\nNow please make your choice."
+                text="\n\n Second stimulation triggered. Now please make your choice."
             )
             self.trigger_pre_trial_move(1)
             self.phase_stage = 2
@@ -219,7 +219,7 @@ class ExperimentUI:
         self.option3_button.config(state=tk.DISABLED)
         self.root.bind("<space>", self.handle_trial_space)
         self.trial_label.config(
-            text=f"Trial {self.trial_count + 1}: Press SPACE to receive the first stimulation."
+            text=f"Trial {self.trial_count + 1}/{self.MAX_TRIALS}: \n\n Press SPACE to receive the first stimulation."
         )
 
     def handle_trial_space(self, event):
@@ -230,13 +230,13 @@ class ExperimentUI:
         """
         if self.phase_stage == 0:
             self.trial_label.config(
-                text=f"Trial {self.trial_count + 1}: First stimulation triggered.\n\nPress SPACE for the second stimulation."
+                text=f"Trial {self.trial_count + 1}/{self.MAX_TRIALS}: \n\n First stimulation triggered. Press SPACE for the second stimulation."
             )
             self.trigger_trial_move_phase(0)
             self.phase_stage = 1
         elif self.phase_stage == 1:
             self.trial_label.config(
-                text=f"Trial {self.trial_count + 1}: Second stimulation triggered.\n\nNow please make your choice."
+                text=f"Trial {self.trial_count + 1}/{self.MAX_TRIALS}: \n\n Second stimulation triggered. Now please make your choice."
             )
             self.trigger_trial_move_phase(1)
             self.phase_stage = 2
@@ -299,7 +299,7 @@ if __name__ == '__main__':
         [[100, 0]]   # Second stimulation
     ]
 
-    pair_count = 2
+    pair_count = 4
     all_trials = get_trial_moves(pair_count)
 
     max_trial = len(all_trials)
