@@ -299,7 +299,7 @@ if __name__ == '__main__':
         [[100, 0]]   # Second stimulation
     ]
 
-    pair_count = 4
+    pair_count = 6
     all_trials = get_trial_moves(pair_count)
 
     max_trial = len(all_trials)

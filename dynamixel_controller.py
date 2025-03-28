@@ -20,7 +20,7 @@ class DynamixelController:
     TORQUE_ENABLE  = 1
     TORQUE_DISABLE = 0
 
-    MID_OFFSET = 995
+    MID_OFFSET = 950
 
     def __init__(self):
         # Initialize port and packet handlers
@@ -50,7 +50,8 @@ class DynamixelController:
         Read the current motor position.读取
         """
         position, _, _ = self.packetHandler.read4ByteTxRx(self.portHandler, self.DXL_ID, self.ADDR_PRESENT_POSITION)
-        position_mod = position % 4096
+        # position_mod = position % 4096
+        position_mod = position % 4097
         pos  = position_mod - self.MID_OFFSET
         print(f"Current centered position: {pos}")
         return pos
@@ -94,11 +95,18 @@ if __name__ == "__main__":
         # Read current position
         # while True:
             postion = controller.read_current_position()
-        
+
+            # horizontal test
             # Set goal positions [-600, 600]
             controller.move_to_position(0)      # center
             controller.move_to_position([334, 0])    # forward
+            controller.move_to_position([-334, 0])    # forward
+
+            # forward test
+            # Set goal positions [-600, 600]
+            controller.move_to_position(0)      # center
             controller.move_to_position([334, 0])    # forward
+            controller.move_to_position([-334, 0])    # forward
 
             # Close connection
             controller.close()

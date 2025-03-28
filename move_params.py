@@ -3,38 +3,29 @@ from typing import List
 
 # Constants for default position and movement step size
 DEFAULT_POSITION = 0
-STEP_SIZE = 66.7  # 600 / 9
+STEP_SIZE = 14  # 0.2mm step in raw units (calculation: 630 / 9 / 5)
+MIN_MOVEMENT = 329  # corresponds to 4.6mm
 
-def calculate_move(distance_mm: int) -> List[int]:
-    x_value = DEFAULT_POSITION + distance_mm * STEP_SIZE
+"""
+Min Movement  = 4.7mm
+Max Movement  = 6.3mm
+Step Size     = 0.2mm
+num_Movements = 9
+"""
+
+def calculate_move(distance_mm: float) -> List[int]:
+    steps = (distance_mm - 4.7) / 0.2
+    x_value = MIN_MOVEMENT + steps * STEP_SIZE
     return [int(round(x_value)), DEFAULT_POSITION]
 
-# Precomputed movement vectors
-MOVE_1MM = calculate_move(1)
-MOVE_2MM = calculate_move(2)
-MOVE_3MM = calculate_move(3)
-MOVE_4MM = calculate_move(4)
-THRESHOLD_MOVE = calculate_move(5)
-MOVE_6MM = calculate_move(6)
-MOVE_7MM = calculate_move(7)
-MOVE_8MM = calculate_move(8)
-MOVE_9MM = calculate_move(9)
+# Create moves for 4.7mm, 4.9mm, …, 6.3mm
+MOVE_VALUES = {round(4.7 + 0.2 * i, 1): calculate_move(4.7 + 0.2 * i) for i in range(9)}
+
+# Define the threshold move at 5.5mm.
+THRESHOLD_MOVE = calculate_move(5.5)
 
 def get_trial_moves(pair_count: int) -> List[List[List[int]]]:
-    """
-    Generate trial movement pairs with the specified number of repetitions per pair.
-    Half will be [THRESHOLD_MOVE, move] and half [move, THRESHOLD_MOVE].
-    
-    Args:
-        pair_count (int): Number of times each movement pair should be generated.
-    
-    Returns:
-        List of trial movement pairs.
-    """
-    candidate_moves = [
-        MOVE_1MM, MOVE_2MM, MOVE_3MM, MOVE_4MM, THRESHOLD_MOVE,
-        MOVE_6MM, MOVE_7MM, MOVE_8MM, MOVE_9MM
-    ]
+    candidate_moves = [MOVE_VALUES[round(4.7 + 0.2 * i, 1)] for i in range(9)]
 
     trial_moves = []
     for move in candidate_moves:
@@ -47,9 +38,7 @@ def get_trial_moves(pair_count: int) -> List[List[List[int]]]:
     return trial_moves
 
 def main() -> None:
-    # Ensure this is an even number
-    pair_count = 4  
-
+    pair_count = 4  # Ensure this is an even number
     trials = get_trial_moves(pair_count)
     for idx, trial in enumerate(trials, start=1):
         print(f"Trial {idx}: {trial}")

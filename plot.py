@@ -1,55 +1,77 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
-# 读取数据
-with open('results.txt', 'r') as file:
+def logistic(x, L, k, x0):
+    return L / (1 + np.exp(-k * (x - x0)))
+
+with open('kai_6min_results.txt', 'r') as file:
     lines = file.readlines()
 
 data = []
-standard_mm = 5
+standard_mm = 5.5
 
 for line in lines:
-    _, rest = line.split(":", 1)
-    rest = rest.strip()
-    left_str, right_str = rest.split(" vs ", 1)
-    left_mm = int(left_str.replace("mm", "").strip())
-    tokens = right_str.split()
-    right_mm = int(tokens[0].replace("mm", "").strip())
-    response = " ".join(tokens[1:])
+    try:
+        _, rest = line.split(":", 1)
+        rest = rest.strip()
+        left_str, right_str = rest.split(" vs ", 1)
+        left_mm = float(left_str.replace("mm", "").strip())
+        tokens = right_str.split()
+        right_mm = float(tokens[0].replace("mm", "").strip())
+        response = " ".join(tokens[1:])
+    except Exception as e:
+        continue
     
-    # 确定候选刺激位置
-    if left_mm != standard_mm:
-        candidate_mm = left_mm
-        candidate_position = "left"
+    if left_mm == standard_mm and right_mm == standard_mm:
+        candidate_mm = standard_mm
+        y = 0.5
     else:
-        candidate_mm = right_mm
-        candidate_position = "right"
-    
-    # 编码响应值
-    if response == "First Greater":
-        if candidate_position == "left":
-            y = 1.0   # 候选在左侧且被试认为"更大"
+        if left_mm != standard_mm:
+            candidate_mm = left_mm
+            candidate_position = "left"
         else:
-            y = 0.0   # 候选在右侧且被试认为左侧标准更大 → 候选更小
-    elif response == "First Smaller":
-        if candidate_position == "left":
-            y = 0.0   # 候选在左侧且被试认为"更小"
+            candidate_mm = right_mm
+            candidate_position = "right"
+        
+        if response == "First Greater":
+            y = 1.0 if candidate_position == "left" else 0.0
+        elif response == "Second Greater":
+            y = 1.0 if candidate_position == "right" else 0.0
         else:
-            y = 1.0   # 候选在右侧且被试认为左侧标准更小 → 候选更大
-    
+            continue
+
     data.append((candidate_mm, y))
 
 df = pd.DataFrame(data, columns=['x', 'y'])
 
-# 每个刺激的平均概率
+# 对相同刺激数值的试验求平均响应
 grouped = df.groupby('x').mean().reset_index()
+x_data = grouped['x'].values
+y_data = grouped['y'].values
 
-x_group = grouped['x']
-y_group = grouped['y']
+# 初始猜测参数：最大值L、斜率k和PSE (x0)
+p0 = [1, 1, 5]
 
-import seaborn as sns
-sns.regplot(x='x', y='y', data=grouped, lowess=True, scatter_kws={'s': 30})
-plt.xlabel('x')
-plt.ylabel('y')
-plt.title('LOWESS')
+params, _ = curve_fit(logistic, x_data, y_data, p0)
+L, k, x0 = params
+pse = x0
+
+x_smooth = np.linspace(min(x_data), max(x_data), 200)
+y_smooth = logistic(x_smooth, *params)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(x_data, y_data, s=50, color='navy', zorder=5, label='Mean proportion')
+plt.plot(x_smooth, y_smooth, color='red', linewidth=2, label='Logistic fit')
+plt.axhline(0.5, color='green', linestyle=':', linewidth=1.5, label='50% threshold')
+plt.axvline(standard_mm, color='orange', linestyle='--', linewidth=1, alpha=0.5, label=f'Standard ({standard_mm}mm)')
+
+plt.text(pse + 0.2, 0.53, f'PSE = {pse:.1f}mm', color='black', ha='left', va='center', fontsize=12)
+plt.xlabel('Comparison Stimulus Length (mm)', fontsize=12)
+plt.ylabel('Proportion', fontsize=12)
+plt.title('PSE Estimation', fontsize=14)
+plt.ylim(0, 1)
+plt.grid(True, alpha=0.3)
+plt.legend(loc='best')
 plt.show()

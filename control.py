@@ -1,31 +1,24 @@
 from dynamixel_controller import DynamixelController
 from experiment_ui import ExperimentUI
-from move_params import get_trial_moves, calculate_move, STEP_SIZE
+from move_params import get_trial_moves, STEP_SIZE, MIN_MOVEMENT, THRESHOLD_MOVE
 
-def generate_result_file(responses, filename="results.txt", default_position=0, step_size=STEP_SIZE, threshold_move_value=None):
-    """
-    生成结果文件，记录每次试次的刺激对和用户选择，格式为：
-      Trial 1: 5mm vs 5mm First Greater
-      Trial 2: 5mm vs 1mm First Greater
-      ...
-    """
-    if threshold_move_value is None:
-        threshold_move_value = calculate_move(5)[0]  # 阈值对应的 raw 值
+def generate_result_file(responses, filename="results.txt", min_movement=MIN_MOVEMENT, threshold_move_value=THRESHOLD_MOVE[0], step_size=STEP_SIZE):
     with open(filename, "w", encoding="utf-8") as f:
         for res in responses:
             trial = res["trial"]
-            pair = res["value"]  # 预期格式为 [[raw_value, 0], [raw_value, 0]]
+            pair = res["value"]
             response = res["response"]
             mm_values = []
             for move in pair:
-                raw = move[0]
-                if raw == threshold_move_value:
-                    mm = 5
+                raw_value = move[0]
+                if raw_value == threshold_move_value:
+                    mm = 5.5
                 else:
-                    mm = int(round(raw / step_size))
+                    steps = (raw_value - min_movement) / step_size
+                    mm = 4.7 + steps * 0.2
+                    mm = round(mm, 1)
                 mm_values.append(mm)
-            # 格式：Trial X: {mm1}mm vs {mm2}mm {response}
-            f.write(f"Trial {trial}: {mm_values[0]}mm vs {mm_values[1]}mm {response}\n")
+            f.write(f"Trial {trial}: {mm_values[0]} vs {mm_values[1]} {response}\n")
     print(f"Results saved to {filename}")
 
 
@@ -42,7 +35,7 @@ def main():
         ]
 
         # pair_count (even number)
-        pair_count = 2
+        pair_count = 6
         trial_move_values = get_trial_moves(pair_count)
         max_trial = len(trial_move_values)
 
