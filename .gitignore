@@ -3,4 +3,4 @@ __pycache__/
 *.pyo
 
 DynamixelSDK/
-results.txt
+Results

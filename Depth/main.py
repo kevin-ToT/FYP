@@ -1,17 +1,21 @@
+import os
+
 from controller import DynamixelController
 from experiment_ui import ExperimentUI
 from depth_params import get_trial_moves, STEP_SIZE_MM, STEP_SIZE, THRESHOLD_MM, THRESHOLD_POSITION
 
-def generate_result_file(responses, filename="results.txt"):
+def generate_result_file(responses, filename="Results/depth_result.txt"):
     """
     Generate a result file grouped into forward/backward trials with mm values.
     """
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
     forward_section = []
     backward_section = []
 
     for res in responses:
         trial = res["trial"]
-        pair = res["value"]  # [[raw, 0], [raw, 0]]
+        pair = res["value"]
         response = res["response"]
         stage = res.get("stage", "forward")
 
