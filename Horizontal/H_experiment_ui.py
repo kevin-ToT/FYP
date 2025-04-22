@@ -1,5 +1,5 @@
 import tkinter as tk
-from depth_params import get_trial_moves
+from H_params import get_trial_moves
 
 # DummyController for testing
 class DummyController:
@@ -12,24 +12,24 @@ class DummyController:
 
 
 class ExperimentUI:
-    def __init__(self, controller=None, forward_trials=None, backward_trials=None,
-                 forward_pre_trial=None, backward_pre_trial=None):
+    def __init__(self, controller=None, left_trials=None, right_trials=None,
+                 left_pre_trial=None, right_pre_trial=None):
         self.controller = controller
         self.root = tk.Tk()
         self.root.title("Interactive UI")
         self.root.geometry("1280x720")
 
-        self.stage = "forward"  # forward -> rest -> backward
+        self.stage = "left"  # left -> rest -> right
         self.trial_count = 0
         self.responses = []
 
-        self.forward_trials = forward_trials
-        self.backward_trials = backward_trials
-        self.forward_pre_trial = forward_pre_trial
-        self.backward_pre_trial = backward_pre_trial
+        self.left_trials = left_trials
+        self.right_trials = right_trials
+        self.left_pre_trial = left_pre_trial
+        self.right_pre_trial = right_pre_trial
 
-        self.trial_move_values = self.forward_trials
-        self.pre_trial_move_value = self.forward_pre_trial
+        self.trial_move_values = self.left_trials
+        self.pre_trial_move_value = self.left_pre_trial
         self.MAX_TRIALS = len(self.trial_move_values)
 
         self.phase_stage = 0
@@ -74,7 +74,7 @@ class ExperimentUI:
         self.option3_button.pack(side=tk.LEFT, padx=10)
 
         # ----- Rest page -----
-        self.rest_label = tk.Label(self.rest_frame, text="Forward trials completed.\n\nPlease rest.\n\nPress SPACE to begin the backward trials.",
+        self.rest_label = tk.Label(self.rest_frame, text="left trials completed.\n\nPlease rest.\n\nPress SPACE to begin the right trials.",
                                    font=("Helvetica", 26), wraplength=1000)
         self.rest_label.pack(pady=100)
 
@@ -146,7 +146,7 @@ class ExperimentUI:
         if self.trial_count < self.MAX_TRIALS:
             self.show_trial_page()
         else:
-            if self.stage == "forward":
+            if self.stage == "left":
                 self.show_rest_page()
             else:
                 self.show_final_page()
@@ -158,10 +158,10 @@ class ExperimentUI:
     def handle_rest_space(self, event):
         self.rest_frame.pack_forget()
         self.root.unbind("<space>")
-        self.stage = "backward"
+        self.stage = "right"
         self.trial_count = 0
-        self.trial_move_values = self.backward_trials
-        self.pre_trial_move_value = self.backward_pre_trial
+        self.trial_move_values = self.right_trials
+        self.pre_trial_move_value = self.right_pre_trial
         self.MAX_TRIALS = len(self.trial_move_values)
         self.show_pre_trial_page()
 
@@ -178,16 +178,16 @@ class ExperimentUI:
 if __name__ == '__main__':
     dummy_controller = DummyController()
 
-    forward_pre_trial = [[500, 0], [100, 0]]
-    backward_pre_trial = [[-500, 0], [-100, 0]]
+    left_pre_trial = [[500, 0], [100, 0]]
+    right_pre_trial = [[-500, 0], [-100, 0]]
     pair_count = 2
 
-    forward_trials = get_trial_moves(pair_count, direction="forward")
-    backward_trials = get_trial_moves(pair_count, direction="backward")
+    left_trials = get_trial_moves(pair_count, direction="left")
+    right_trials = get_trial_moves(pair_count, direction="right")
 
     ui = ExperimentUI(controller=dummy_controller,
-                      forward_trials=forward_trials,
-                      backward_trials=backward_trials,
-                      forward_pre_trial=forward_pre_trial,
-                      backward_pre_trial=backward_pre_trial)
+                      left_trials=left_trials,
+                      right_trials=right_trials,
+                      left_pre_trial=left_pre_trial,
+                      right_pre_trial=right_pre_trial)
     ui.run()

@@ -35,7 +35,7 @@ CANDIDATE_MOVES = [
     MOVE_6, MOVE_7, MOVE_8, MOVE_9
 ]
 
-def get_trial_moves(pair_count: int, direction: Literal["forward", "backward"]) -> List[List[List[int]]]:
+def get_trial_moves(pair_count: int, direction: Literal["left", "right"]) -> List[List[List[int]]]:
     """
     Generate trial movement pairs in specified direction: forward or backward.
     
@@ -49,14 +49,14 @@ def get_trial_moves(pair_count: int, direction: Literal["forward", "backward"]) 
     trial_moves = []
 
     for move in CANDIDATE_MOVES:
-        if direction == "forward":
+        if direction == "left":
             main_move = move
             threshold = THRESHOLD_MOVE
-        elif direction == "backward":
+        elif direction == "right":
             main_move = backward_move(move)
             threshold = backward_move(THRESHOLD_MOVE)
         else:
-            raise ValueError("Direction must be 'forward' or 'backward'")
+            raise ValueError("Direction must be 'left' or 'right'")
 
         for _ in range(pair_count // 2):
             trial_moves.append([threshold, main_move])
@@ -68,15 +68,15 @@ def get_trial_moves(pair_count: int, direction: Literal["forward", "backward"]) 
 def main() -> None:
     pair_count = 2  # Should be even
 
-    print("=== Forward Trials ===")
-    forward_trials = get_trial_moves(pair_count, direction="forward")
+    print("=== Left Trials ===")
+    forward_trials = get_trial_moves(pair_count, direction="left")
     for idx, trial in enumerate(forward_trials, start=1):
-        print(f"Forward Trial {idx}: {trial}")
+        print(f"Left Trial {idx}: {trial}")
 
-    print("\n=== Backward Trials ===")
-    backward_trials = get_trial_moves(pair_count, direction="backward")
+    print("\n=== Right Trials ===")
+    backward_trials = get_trial_moves(pair_count, direction="right")
     for idx, trial in enumerate(backward_trials, start=1):
-        print(f"Backward Trial {idx}: {trial}")
+        print(f"Right Trial {idx}: {trial}")
 
 if __name__ == '__main__':
     main()

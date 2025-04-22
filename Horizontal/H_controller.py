@@ -12,7 +12,7 @@ class DynamixelController:
 
     # Communication settings
     PROTOCOL_VERSION = 2.0
-    DXL_ID           = 2
+    DXL_ID           = 1
     BAUDRATE         = 1000000
     DEVICENAME       = "COM3"
 
@@ -20,7 +20,7 @@ class DynamixelController:
     TORQUE_ENABLE  = 1
     TORQUE_DISABLE = 0
 
-    MID_OFFSET = 995
+    MID_OFFSET = 930
 
     def __init__(self):
         # Initialize port and packet handlers
@@ -95,12 +95,12 @@ if __name__ == "__main__":
         # while True:
             postion = controller.read_current_position()
         
-            # Set goal positions [-600, 600]
+            # # Set goal positions [-600, 600]
             controller.move_to_position(0)      # center
-            controller.move_to_position([-334, 0])    # forward
-            controller.move_to_position([-334, 0])    # forward
+            controller.move_to_position([-600, 0])    # forward
+            controller.move_to_position([600, 0])    # forward
 
-            # Close connection
+            # # Close connection
             controller.close()
     else:
         print("Initialization failed.")
