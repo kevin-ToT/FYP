@@ -1,5 +1,6 @@
 import tkinter as tk
-from H_params import get_trial_moves
+from D_params import get_trial_moves
+from typing import List, Literal
 
 # DummyController for testing
 class DummyController:
@@ -7,29 +8,29 @@ class DummyController:
         print("Dummy: 读取当前电机位置")
         return 500
 
-    def move_to_position(self, positions):
+    def move_to_position(self, positions: List[int]) -> None:
         print("Dummy: 正在移动到位置:", positions)
 
 
 class ExperimentUI:
-    def __init__(self, controller=None, left_trials=None, right_trials=None,
-                 left_pre_trial=None, right_pre_trial=None):
+    def __init__(self, controller=None, forward_trials=None, backward_trials=None,
+                 forward_pre_trial=None, backward_pre_trial=None):
         self.controller = controller
         self.root = tk.Tk()
         self.root.title("Interactive UI")
         self.root.geometry("1280x720")
 
-        self.stage = "left"  # left -> rest -> right
+        self.stage = "forward"  # forward -> rest -> backward
         self.trial_count = 0
         self.responses = []
 
-        self.left_trials = left_trials
-        self.right_trials = right_trials
-        self.left_pre_trial = left_pre_trial
-        self.right_pre_trial = right_pre_trial
+        self.forward_trials = forward_trials
+        self.backward_trials = backward_trials
+        self.forward_pre_trial = forward_pre_trial
+        self.backward_pre_trial = backward_pre_trial
 
-        self.trial_move_values = self.left_trials
-        self.pre_trial_move_value = self.left_pre_trial
+        self.trial_move_values = self.forward_trials
+        self.pre_trial_move_value = self.forward_pre_trial
         self.MAX_TRIALS = len(self.trial_move_values)
 
         self.phase_stage = 0
@@ -74,7 +75,7 @@ class ExperimentUI:
         self.option3_button.pack(side=tk.LEFT, padx=10)
 
         # ----- Rest page -----
-        self.rest_label = tk.Label(self.rest_frame, text="left trials completed.\n\nPlease rest.\n\nPress SPACE to begin the right trials.",
+        self.rest_label = tk.Label(self.rest_frame, text="Forward trials completed.\n\nPlease rest.\n\nPress SPACE to begin the backward trials.",
                                    font=("Helvetica", 26), wraplength=1000)
         self.rest_label.pack(pady=100)
 
@@ -119,7 +120,8 @@ class ExperimentUI:
     def show_trial_page(self):
         self.trial_frame.pack(expand=True, fill='both')
         if self.trial_count < self.MAX_TRIALS:
-            self.current_trial_pair = self.trial_move_values[self.trial_count]
+            pos1, pos2, std_idx = self.trial_move_values[self.trial_count]
+            self.current_trial_pair = (pos1, pos2, std_idx)
         self.phase_stage = 0
         self.option1_button.config(state=tk.DISABLED)
         self.option3_button.config(state=tk.DISABLED)
@@ -127,6 +129,7 @@ class ExperimentUI:
         self.trial_label.config(text=f"Trial {self.trial_count + 1}/{self.MAX_TRIALS}: \n\n Press SPACE to receive the first stimulation.")
 
     def handle_trial_space(self, event):
+        pos1, pos2, std_idx = self.current_trial_pair
         if self.phase_stage == 0:
             self.trial_label.config(text=f"Trial {self.trial_count + 1}/{self.MAX_TRIALS}: \n\n First stimulation triggered. Press SPACE for the second stimulation.")
             self.controller.move_to_position(self.current_trial_pair[0])
@@ -138,15 +141,23 @@ class ExperimentUI:
             self.option1_button.config(state=tk.NORMAL)
             self.option3_button.config(state=tk.NORMAL)
 
-    def handle_trial_response(self, response):
-        self.responses.append({"trial": self.trial_count + 1, "value": self.current_trial_pair, "response": response, "stage": self.stage})
+    def handle_trial_response(self, response: str):
+        pos1, pos2, std_idx = self.current_trial_pair
+        self.responses.append({
+            "trial": self.trial_count + 1,
+            "pos1": pos1,
+            "pos2": pos2,
+            "std_idx": std_idx,
+            "response": response,
+            "stage": self.stage
+        })
         self.trial_count += 1
         self.trial_frame.pack_forget()
         self.root.unbind("<space>")
         if self.trial_count < self.MAX_TRIALS:
             self.show_trial_page()
         else:
-            if self.stage == "left":
+            if self.stage == "forward":
                 self.show_rest_page()
             else:
                 self.show_final_page()
@@ -158,10 +169,10 @@ class ExperimentUI:
     def handle_rest_space(self, event):
         self.rest_frame.pack_forget()
         self.root.unbind("<space>")
-        self.stage = "right"
+        self.stage = "backward"
         self.trial_count = 0
-        self.trial_move_values = self.right_trials
-        self.pre_trial_move_value = self.right_pre_trial
+        self.trial_move_values = self.backward_trials
+        self.pre_trial_move_value = self.backward_pre_trial
         self.MAX_TRIALS = len(self.trial_move_values)
         self.show_pre_trial_page()
 
@@ -178,16 +189,16 @@ class ExperimentUI:
 if __name__ == '__main__':
     dummy_controller = DummyController()
 
-    left_pre_trial = [[500, 0], [100, 0]]
-    right_pre_trial = [[-500, 0], [-100, 0]]
-    pair_count = 2
+    forward_pre_trial = [[500, 0], [100, 0]]
+    backward_pre_trial = [[-500, 0], [-100, 0]]
+    pair_count = 4
 
-    left_trials = get_trial_moves(pair_count, direction="left")
-    right_trials = get_trial_moves(pair_count, direction="right")
+    forward_trials = get_trial_moves(pair_count, direction="forward")
+    backward_trials = get_trial_moves(pair_count, direction="backward")
 
     ui = ExperimentUI(controller=dummy_controller,
-                      left_trials=left_trials,
-                      right_trials=right_trials,
-                      left_pre_trial=left_pre_trial,
-                      right_pre_trial=right_pre_trial)
+                      forward_trials=forward_trials,
+                      backward_trials=backward_trials,
+                      forward_pre_trial=forward_pre_trial,
+                      backward_pre_trial=backward_pre_trial)
     ui.run()

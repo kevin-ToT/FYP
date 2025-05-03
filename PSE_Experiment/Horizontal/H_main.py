@@ -4,7 +4,7 @@ from H_controller import DynamixelController
 from H_experiment_ui import ExperimentUI
 from H_params import get_trial_moves, STEP_SIZE_MM, STEP_SIZE, THRESHOLD_MM, THRESHOLD_POSITION
 
-def generate_result_file(responses, filename="Results/horizontal_result.txt"):
+def generate_result_file(responses, filename):
     """
     Generate a result file grouped into left/right trials with mm values.
     """
@@ -17,7 +17,7 @@ def generate_result_file(responses, filename="Results/horizontal_result.txt"):
         trial = res["trial"]
         pair = res["value"]
         response = res["response"]
-        stage = res.get("stage", "left")
+        stage = res.get("stage", "right")
 
         mm_values = []
         for move in pair:
@@ -35,12 +35,12 @@ def generate_result_file(responses, filename="Results/horizontal_result.txt"):
 
     with open(filename, "w", encoding="utf-8") as f:
         if left_section:
-            f.write("=== Left Trials ===\n")
+            f.write("=== Right Trials ===\n")
             for line in left_section:
                 f.write(line + "\n")
 
         if right_section:
-            f.write("\n=== Right Trials ===\n")
+            f.write("\n=== Left Trials ===\n")
             for line in right_section:
                 f.write(line + "\n")
 
@@ -55,9 +55,9 @@ def main():
 
     try:
         # Set up trials for both stages
-        pair_count = 2  # Should be even
-        left_trials = get_trial_moves(pair_count, "left")
-        right_trials = get_trial_moves(pair_count, "right")
+        pair_count = 4  # Should be even
+        left_trials = get_trial_moves(pair_count, "right")
+        right_trials = get_trial_moves(pair_count, "left")
 
         left_pre_trial = [[500, 0], [200, 0]]
         right_pre_trial = [[-500, 0], [-200, 0]]
@@ -72,7 +72,8 @@ def main():
         )
         ui.run()
 
-        generate_result_file(ui.responses)
+        # generate_result_file(ui.responses, filename="Results/Kevin_H.txt")
+        generate_result_file(ui.responses, filename="Results/Will_H.txt")
     except Exception as e:
         print("An error occurred during the experiment:", e)
     finally:

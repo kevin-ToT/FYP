@@ -35,7 +35,7 @@ CANDIDATE_MOVES = [
     MOVE_6, MOVE_7, MOVE_8, MOVE_9
 ]
 
-def get_trial_moves(pair_count: int, direction: Literal["left", "right"]) -> List[List[List[int]]]:
+def get_trial_moves(pair_count: int, direction: Literal["forward", "backward"]) -> List[List[List[int]]]:
     """
     Generate trial movement pairs in specified direction: forward or backward.
     
@@ -49,34 +49,35 @@ def get_trial_moves(pair_count: int, direction: Literal["left", "right"]) -> Lis
     trial_moves = []
 
     for move in CANDIDATE_MOVES:
-        if direction == "left":
+        if direction == "forward":
             main_move = move
             threshold = THRESHOLD_MOVE
-        elif direction == "right":
+        elif direction == "backward":
             main_move = backward_move(move)
             threshold = backward_move(THRESHOLD_MOVE)
         else:
-            raise ValueError("Direction must be 'left' or 'right'")
+            raise ValueError("Direction must be 'forward' or 'backward'")
 
         for _ in range(pair_count // 2):
-            trial_moves.append([threshold, main_move])
-            trial_moves.append([main_move, threshold])
+            trial_moves.append([threshold, main_move, 1])
+            trial_moves.append([main_move, threshold, 2])
 
     random.shuffle(trial_moves)
     return trial_moves
 
+
 def main() -> None:
     pair_count = 2  # Should be even
 
-    print("=== Left Trials ===")
-    forward_trials = get_trial_moves(pair_count, direction="left")
+    print("=== Forward Trials ===")
+    forward_trials = get_trial_moves(pair_count, direction="forward")
     for idx, trial in enumerate(forward_trials, start=1):
-        print(f"Left Trial {idx}: {trial}")
+        print(f"Forward Trial {idx}: {trial}")
 
-    print("\n=== Right Trials ===")
-    backward_trials = get_trial_moves(pair_count, direction="right")
+    print("\n=== Backward Trials ===")
+    backward_trials = get_trial_moves(pair_count, direction="backward")
     for idx, trial in enumerate(backward_trials, start=1):
-        print(f"Right Trial {idx}: {trial}")
+        print(f"Backward Trial {idx}: {trial}")
 
 if __name__ == '__main__':
     main()

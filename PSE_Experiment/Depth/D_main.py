@@ -14,19 +14,21 @@ def generate_result_file(responses, filename="Results/depth_result.txt"):
     backward_section = []
 
     for res in responses:
-        trial = res["trial"]
-        pair = res["value"]
+        trial   = res["trial"]
+        pos1, pos2, std_idx = res["pos1"], res["pos2"], res.get("std_idx", 1)
         response = res["response"]
-        stage = res.get("stage", "forward")
+        stage    = res.get("stage", "forward")
 
-        mm_values = []
-        for move in pair:
-            raw = move[0]
+        def vec_to_mm(move_vec):
+            raw = move_vec[0]
             displacement_mm = (raw - THRESHOLD_POSITION) / STEP_SIZE
-            mm = round(THRESHOLD_MM + displacement_mm, 1)
-            mm_values.append(mm)
+            return round(THRESHOLD_MM + displacement_mm, 1)
 
-        line = f"Trial {trial}: {mm_values[0]}mm vs {mm_values[1]}mm {response}"
+        mm1 = vec_to_mm(pos1)
+        mm2 = vec_to_mm(pos2)
+
+        # "Trial 2: 4.9mm vs 5.5mm  2  Second Greater"
+        line = f"Trial {trial}: {mm1}mm vs {mm2}mm  {std_idx}  {response}"
 
         if stage == "forward":
             forward_section.append(line)
@@ -47,6 +49,7 @@ def generate_result_file(responses, filename="Results/depth_result.txt"):
     print(f"Results saved to {filename}")
 
 
+
 def main():
     controller = DynamixelController()
     if not controller.initialize():
@@ -55,7 +58,7 @@ def main():
 
     try:
         # Set up trials for both stages
-        pair_count = 2  # Should be even
+        pair_count = 4  # Should be even
         forward_trials = get_trial_moves(pair_count, "forward")
         backward_trials = get_trial_moves(pair_count, "backward")
 
@@ -72,7 +75,8 @@ def main():
         )
         ui.run()
 
-        generate_result_file(ui.responses)
+        generate_result_file(ui.responses, filename="Results/Will_D.txt")
+        # generate_result_file(ui.responses, filename="Results/Kevin_D.txt")
     except Exception as e:
         print("An error occurred during the experiment:", e)
     finally:
