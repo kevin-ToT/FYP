@@ -5,7 +5,7 @@ from controller import DynamixelController
 from UI import ExperimentUI
 from params import get_trial_moves, STEP_SIZE, THRESHOLD_MM, THRESHOLD_POSITION
 
-def generate_result_file(responses, filename="Results/depth_result.txt"):
+def generate_result_file(responses, filename="Results/depth_result.txt", duration_str=""):
     """
     Generate a result file grouped into forward, backward, left, and right trials with mm values.
     """
@@ -21,7 +21,8 @@ def generate_result_file(responses, filename="Results/depth_result.txt"):
 
     for res in responses:
         trial = res["trial"]
-        pos1, pos2, std_idx = res["pos1"], res["pos2"], res.get("std_idx", 1)
+        pos1, pos2 = res["pos1"], res["pos2"]
+        std_idx = res.get("std_idx", 1)
         response = res["response"]
         stage = res.get("stage", "forward")  # Default to forward if missing
 
@@ -42,6 +43,8 @@ def generate_result_file(responses, filename="Results/depth_result.txt"):
 
     # Write results
     with open(filename, "w", encoding="utf-8") as f:
+        f.write(f"Experiment duration: {duration_str}\n\n")
+
         for stage in ["forward", "backward", "left", "right"]:
             if sections[stage]:
                 f.write(f"=== {stage.capitalize()} Trials ===\n")
@@ -52,6 +55,9 @@ def generate_result_file(responses, filename="Results/depth_result.txt"):
     print(f"Results saved to {filename}")
 
 def main():
+    # ------------------ 记录开始时间 ------------------
+    start_time = datetime.datetime.now()
+
     controller_H = DynamixelController(dxl_id=1, mid_offset=930)  # Horizontal motor
     controller_D = DynamixelController(dxl_id=2, mid_offset=995)  # Directional motor
 
@@ -111,10 +117,17 @@ def main():
 
         ui.run()
 
-        # Auto timestamp filename
+        # ------------------ 记录结束时间 ------------------
+        end_time = datetime.datetime.now()
+        duration = end_time - start_time
+        duration_str = str(duration)
+
+        # Auto timestamp filename + duration in filename (minutes)
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"Results/Kevin_{timestamp}.txt"
-        generate_result_file(ui.responses, filename=filename)
+        duration_minutes = round(duration.total_seconds() / 60, 1)
+        filename = f"Results/Kevin_{timestamp}_{duration_minutes}min.txt"
+
+        generate_result_file(ui.responses, filename=filename, duration_str=duration_str)
 
     except Exception as e:
         try:

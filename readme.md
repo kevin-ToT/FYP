@@ -44,4 +44,4 @@ Trial : std vs test  option
 - **PSE Across 4 Directions**  
   Should the PSE be calculated **separately for each of the 4 directions** (e.g., forward, backward, left, right)  
   or **take the average** across all directions?
-
+-**Time record**
